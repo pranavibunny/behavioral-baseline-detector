@@ -66,7 +66,6 @@ behavioral-baseline-detector/
 │   └── detector.py          # Detection engine with MITRE ATT&CK mapping
 │
 ├── data/                    # Generated log data (auto-created on first run)
-├── requirements.txt
 └── README.md
 ```
 
@@ -75,9 +74,6 @@ behavioral-baseline-detector/
 ## How to run
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
 # Run the full pipeline
 python app/main.py
 ```
