@@ -25,6 +25,8 @@ print("="*70)
 
 # Step 1 — Generate fresh logs
 print("\n[1] Generating simulated endpoint logs...")
+# Create data folder if it doesn't exist
+os.makedirs(DATA_FILE.rsplit(os.sep, 1)[0], exist_ok=True)
 logs_raw = generate_logs(500)
 save_logs(logs_raw, filename=DATA_FILE)  # passing correct path here
 
