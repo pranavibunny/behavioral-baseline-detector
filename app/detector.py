@@ -1,4 +1,6 @@
 from utils import load_logs, build_baseline
+from risk_scorer import calculate_risk_score, get_risk_label
+
 
 # --- SECURITY CONCEPT ---
 # MITRE ATT&CK mapping — each suspicious pair maps to a real attack technique
@@ -32,6 +34,8 @@ KNOWN_SUSPICIOUS = {
 }
 
 def detect(logs, baseline):
+    from risk_scorer import calculate_risk_score, get_risk_label
+    
     alerts = []
 
     for log in logs:
@@ -41,6 +45,16 @@ def detect(logs, baseline):
 
         if pair in KNOWN_SUSPICIOUS:
             threat = KNOWN_SUSPICIOUS[pair]
+            
+            frequency = baseline[pair]
+            
+            risk = calculate_risk_score({
+                "severity": threat["severity"],
+                "frequency": frequency,
+                "hostname": log["hostname"],
+                "timestamp": log["timestamp"]
+            })
+
             alert = {
                 "timestamp": log["timestamp"],
                 "hostname": log["hostname"],
@@ -49,12 +63,15 @@ def detect(logs, baseline):
                 "reason": threat["reason"],
                 "mitre": threat["mitre"],
                 "severity": threat["severity"],
-                "frequency": baseline[pair],
-                "frequency_note": "Widespread — possible campaign" if baseline[pair] > 15 else "Low frequency — targeted or stealthy"
+                "frequency": frequency,
+                "frequency_note": "Widespread — possible campaign" if frequency > 15 else "Low frequency — targeted or stealthy",
+                "risk_score": risk["total"],
+                "risk_label": get_risk_label(risk["total"]),
+                "score_breakdown": risk["breakdown"]
             }
             alerts.append(alert)
 
-    # Deduplicate — one alert per unique host + pair combination
+    # Deduplicate
     seen = set()
     unique_alerts = []
     for alert in alerts:
@@ -65,6 +82,7 @@ def detect(logs, baseline):
 
     return unique_alerts
 
+
 def print_alerts(alerts):
     if not alerts:
         print("No suspicious activity detected.")
@@ -74,17 +92,20 @@ def print_alerts(alerts):
     print(f"  BEHAVIOURAL DETECTION ENGINE — {len(alerts)} ALERTS FOUND")
     print(f"{'='*70}")
 
-    sorted_alerts = sorted(alerts, key=lambda x: (x["severity"] != "HIGH", x["hostname"]))
+    # Sort by risk score — highest first
+    sorted_alerts = sorted(alerts, key=lambda x: x["risk_score"], reverse=True)
 
     for i, alert in enumerate(sorted_alerts, 1):
-        print(f"\n[ALERT {i}] Severity: {alert['severity']}")
-        print(f"  Time      : {alert['timestamp']}")
-        print(f"  Host      : {alert['hostname']}")
-        print(f"  Parent    : {alert['parent_process']}")
-        print(f"  Child     : {alert['child_process']}")
-        print(f"  Reason    : {alert['reason']}")
-        print(f"  MITRE     : {alert['mitre']}")
-        print(f"  Frequency : {alert['frequency']} occurrences — {alert['frequency_note']}")
-        print(f"  Action    : Investigate immediately" if alert['severity'] == "HIGH" else f"  Action    : Monitor and correlate with other signals")
+        print(f"\n[ALERT {i}] Severity: {alert['severity']} — {alert['risk_label']}")
+        print(f"  Time       : {alert['timestamp']}")
+        print(f"  Host       : {alert['hostname']}")
+        print(f"  Parent     : {alert['parent_process']}")
+        print(f"  Child      : {alert['child_process']}")
+        print(f"  Reason     : {alert['reason']}")
+        print(f"  MITRE      : {alert['mitre']}")
+        print(f"  Frequency  : {alert['frequency']} occurrences — {alert['frequency_note']}")
+        print(f"  Risk Score : {alert['risk_score']}/100")
+        print(f"  Breakdown  → Severity: {alert['score_breakdown']['severity']} | Frequency: {alert['score_breakdown']['frequency']} | Host: {alert['score_breakdown']['host']} | Time: {alert['score_breakdown']['time']}")
+        print(f"  Action     : {'Investigate immediately' if alert['severity'] == 'HIGH' else 'Monitor and correlate with other signals'}")
         print(f"  {'-'*60}")
-
+        
