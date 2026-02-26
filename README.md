@@ -63,7 +63,8 @@ behavioral-baseline-detector/
 │   ├── simulate_logs.py     # Generates synthetic endpoint process logs
 │   ├── utils.py             # Shared functions — load logs, build baseline
 │   ├── baseline.py          # Builds frequency baseline of normal behaviour
-│   └── detector.py          # Detection engine with MITRE ATT&CK mapping
+│   ├── detector.py          # Detection engine with MITRE ATT&CK mapping
+│   └── risk_scorer.py       # Risk scoring — severity, frequency, host, time signals
 │
 ├── data/                    # Generated log data (auto-created on first run)
 └── README.md
@@ -84,13 +85,13 @@ This will generate 500 simulated endpoint process logs, build a behavioural base
 
 ## Detection coverage so far
 
-| Attack Pattern | MITRE Technique | Severity |
-|---|---|---|
-| winword.exe → powershell.exe | T1566.001 Phishing: Malicious Office Document | HIGH |
-| excel.exe → cmd.exe | T1059.003 Command and Scripting: Windows CMD | HIGH |
-| outlook.exe → powershell.exe | T1566.001 Phishing: Malicious Office Document | HIGH |
-| powershell.exe → cmd.exe | T1059.001 Command and Scripting: PowerShell | MEDIUM |
-| svchost.exe → powershell.exe | T1036 Masquerading | MEDIUM |
+| Attack Pattern | MITRE Technique | Severity | Max Risk Score |
+|---|---|---|---|
+| winword.exe → powershell.exe | T1566.001 Phishing: Malicious Office Document | HIGH | 100/100 |
+| excel.exe → cmd.exe | T1059.003 Command and Scripting: Windows CMD | HIGH | 95/100 |
+| outlook.exe → powershell.exe | T1566.001 Phishing: Malicious Office Document | HIGH | 95/100 |
+| powershell.exe → cmd.exe | T1059.001 Command and Scripting: PowerShell | MEDIUM | 85/100 |
+| svchost.exe → powershell.exe | T1036 Masquerading | MEDIUM | 80/100 |
 
 ---
 
