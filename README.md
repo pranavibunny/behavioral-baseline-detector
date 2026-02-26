@@ -99,7 +99,7 @@ This will generate 500 simulated endpoint process logs, build a behavioural base
 - [x] Phase 1 — Simulate endpoint process logs
 - [x] Phase 2 — Build behavioural baseline
 - [x] Phase 3 — Detection engine with MITRE ATT&CK mapping
-- [ ] Phase 4 — Risk scoring (0-100)
+- [x] Phase 4 — Risk scoring (0-100)
 - [ ] Phase 5 — PowerShell obfuscation detection
 - [ ] Phase 6 — File system anomaly detection
 - [ ] Phase 7 — Network behaviour detection
